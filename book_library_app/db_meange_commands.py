@@ -36,6 +36,6 @@ def remove_data():
     try:
        db.session.execute(text(('TRUNCATE TABLE authors')))
        db.session.commit()
-       print('Data has neem successfully removed from database')
+       print('Data has been successfully removed from database')
     except Exception as exc:
         print("Unexpected error: {}".format(exc))

@@ -1,2 +1,3 @@
 FLASK_APP=book_library.py
-FLASK_ENV=development
+# tutaj zmiana bo flask_env=development jest przestarzale
+FLASK_DEBUG=1
