@@ -80,18 +80,18 @@ class Author(db.Model):
         page = request.args.get('page', 1, type=int)
         limit = request.args.get('limit', Config.PER_PAGE, type=int)
         params = {key: value for key, value in request.args.items() if key != 'page'}
-        paginate_obj = query.paginate(page, limit, False)
+        paginate_obj = query.paginate(page=page, per_page=limit, error_out=False)
         pagination = {
             'total_pages': paginate_obj.pages,
             'total_records': paginate_obj.total,
-            'current_page': url_for('get_authors', page=page, **params)
+            'current_page': url_for('authors.get_authors', page=page, **params)
         }
 
         if paginate_obj.has_next:
-            pagination['next_page'] = url_for('get_authors', page=page+1, **params)
+            pagination['next_page'] = url_for('authors.get_authors', page=page+1, **params)
 
         if paginate_obj.has_prev:
-            pagination['previous_page'] = url_for('get_authors', page=page-1, **params)
+            pagination['previous_page'] = url_for('authors.get_authors', page=page-1, **params)
 
         return paginate_obj.items, pagination
 class AuthorSchema(Schema):
