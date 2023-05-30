@@ -1,5 +1,5 @@
 from flask import Response, jsonify
-from book_library_app import app, db
+from book_library_app import db
 from book_library_app.errors import error_bp
 
 

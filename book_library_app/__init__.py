@@ -2,23 +2,27 @@ from flask import Flask
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
-# from sqlalchemy.sql import text
 
-app = Flask(__name__)
-app.config.from_object(Config)
 
-app_ctx = app.app_context()
-app_ctx.push()
+db = SQLAlchemy()
+migrate = Migrate()
 
-db = SQLAlchemy(app)
-migrate = Migrate(app, db)
+def create_app(config_class=Config):
+    app = Flask(__name__)
+    app.config.from_object(config_class)
 
-# results = db.session.execute(text('show databases'))
-# for row in results:
-#     print(row)
-# /\ testowanie czy udało się podłączyć do bazy danych MySQL
+    app_ctx = app.app_context()
+    app_ctx.push()
 
-from book_library_app import authors
-from book_library_app import models
-from book_library_app.commands import db_meange_commands
-from book_library_app import errors
+    db.init_app(app)
+    migrate.init_app(app, db)
+
+    from book_library_app.commands import db_menage_bp
+    from book_library_app.errors import error_bp
+    from book_library_app.authors import authors_bp
+    app.register_blueprint(db_menage_bp)
+    app.register_blueprint(error_bp)
+    app.register_blueprint(authors_bp, url_prefix='/api/v1/')
+
+    return app
+
