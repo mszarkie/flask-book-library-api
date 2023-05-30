@@ -20,9 +20,11 @@ def create_app(config_class=Config):
     from book_library_app.commands import db_menage_bp
     from book_library_app.errors import error_bp
     from book_library_app.authors import authors_bp
+    from book_library_app.books import books_bp
     app.register_blueprint(db_menage_bp)
     app.register_blueprint(error_bp)
     app.register_blueprint(authors_bp, url_prefix='/api/v1/')
+    app.register_blueprint(books_bp, url_prefix='/api/v1/')
 
     return app
 
