@@ -29,7 +29,7 @@ def not_found_error(err):
 
 @error_bp.app_errorhandler(409)
 def conflict_error(err):
-    return ErrorResponse(err.description, 404).to_response()
+    return ErrorResponse(err.description, 409).to_response()
 
 
 @error_bp.app_errorhandler(415)
