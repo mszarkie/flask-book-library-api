@@ -3,7 +3,7 @@ from flask import current_app
 
 from marshmallow import Schema, fields, validate, validates, ValidationError
 from datetime import datetime, date, timedelta
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 
 from book_library_app import db
 
@@ -59,6 +59,9 @@ class User(db.Model):
     def generate_hashed_password(password: str) -> str:
         return generate_password_hash(password)
 
+    def is_password_valid(self, password: str) -> bool:
+        return check_password_hash(self.password, password)
+
     def generate_jwt(self):
         payload = {
             'user_id': self.id,
@@ -86,7 +89,7 @@ class BookSchema(Schema):
     number_of_pages = fields.Integer(required=True)
     description = fields.String()
     author_id = fields.Integer(load_only=True)
-    Author = fields.Nested(lambda: AuthorSchema(only=['id', 'first_name', 'last_name']))
+    author = fields.Nested(lambda: AuthorSchema(only=['id', 'first_name', 'last_name']))
 
     @validates('isbn')
     def validate_isbn(self, value):

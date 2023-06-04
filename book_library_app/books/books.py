@@ -3,7 +3,8 @@ from webargs.flaskparser import use_args
 from flask import jsonify, abort
 
 from book_library_app.models import Book, BookSchema, book_schema, Author
-from book_library_app.utils import validate_json_content_type, get_schema_args, apply_order, apply_filter, get_pagination
+from book_library_app.utils import validate_json_content_type, get_schema_args, apply_order, apply_filter, get_pagination, \
+token_required
 from book_library_app.books import books_bp
 
 @books_bp.route('/books', methods=['GET'])
@@ -27,7 +28,7 @@ def get_books():
 
 @books_bp.route('/books/<int:book_id>', methods=['GET'])
 def get_book(book_id: int):
-    book = Book.query.get_or_404(book_id, description=f'Author with id {book_id} not found')
+    book = Book.query.get_or_404(book_id, description=f'Book with id {book_id} not found')
     return jsonify({
         'success' : True,
         'data' : book_schema.dump(book)
@@ -35,9 +36,10 @@ def get_book(book_id: int):
 
 
 @books_bp.route('/books/<int:book_id>', methods=['PUT'])
+@token_required
 @validate_json_content_type
 @use_args(book_schema, error_status_code=400)
-def update_book(args: dict, book_id: int):
+def update_book(user_id: str, args: dict, book_id: int):
     book = Book.query.get_or_404(book_id, description=f'Book with id {book_id} not found')
     if Book.query.filter(Book.isbn == args['isbn']).first():
         abort(409, description=f'Book with ISBN {args["isbn"]} already exist')
@@ -61,7 +63,8 @@ def update_book(args: dict, book_id: int):
 
 
 @books_bp.route('/books/<int:book_id>', methods=['DELETE'])
-def delete_book(book_id: int):
+@token_required
+def delete_book(user_id: str, book_id: int):
     book = Book.query.get_or_404(book_id, description=f'Book with id {book_id} not found')
 
     db.session.delete(book)
@@ -88,9 +91,10 @@ def get_all_author_books(author_id: int):
 
 
 @books_bp.route('/authors/<int:author_id>/books', methods=['POST'])
+@token_required
 @validate_json_content_type
 @use_args(BookSchema(exclude=['author_id']), error_status_code=400)
-def create_book(args: dict, author_id: int):
+def create_book(user_id: str, args: dict, author_id: int):
     Author.query.get_or_404(author_id, description=f'Author with id {author_id} not found')
     if Book.query.filter(Book.isbn == args['isbn']).first():
         abort(409, description=f'Book with ISBN {args["isbn"]} already exist')

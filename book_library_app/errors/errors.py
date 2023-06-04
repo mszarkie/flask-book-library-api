@@ -23,6 +23,10 @@ def bad_request_error(err):
     messages = err.data.get('messages',{}.get('json',{}))
     return ErrorResponse(messages, 400).to_response()
 
+@error_bp.app_errorhandler(401)
+def unauthorized_error(err):
+    return ErrorResponse(err.description, 401).to_response()
+
 @error_bp.app_errorhandler(404)
 def not_found_error(err):
     return ErrorResponse(err.description, 404).to_response()
