@@ -1,14 +1,13 @@
 import jwt
 import re
 from flask import request, url_for, current_app, abort
-from flask_sqlalchemy import DefaultMeta, BaseQuery
+from flask_sqlalchemy import model, query
 from werkzeug.exceptions import UnsupportedMediaType
 from functools import wraps
 from sqlalchemy.orm.attributes import InstrumentedAttribute
 from sqlalchemy.sql.expression import BinaryExpression
 from typing import Tuple
 
-from config import Config
 
 COMPARISON_OPERATORS_RE = re.compile(r'(.*)\[(gte|gt|lte|lt)\]')
 
@@ -16,7 +15,7 @@ COMPARISON_OPERATORS_RE = re.compile(r'(.*)\[(gte|gt|lte|lt)\]')
 def validate_json_content_type(func):
     @wraps(func)
     def wrapper(*args, **kwagrs):
-        data = request.get_json(silent=True)
+        data = request.get_json()
         if data is None:
             raise UnsupportedMediaType('Content type must be application/json')
         return func(*args, **kwagrs)
@@ -44,7 +43,7 @@ def token_required(func):
     return wrapper
 
 
-def get_schema_args(model: DefaultMeta) -> dict:
+def get_schema_args(model) -> dict:
     schema_args = {'many': True}
     fields = request.args.get('fields')
     if fields:
@@ -52,7 +51,7 @@ def get_schema_args(model: DefaultMeta) -> dict:
     return schema_args
 
 
-def apply_order(model: DefaultMeta, query: BaseQuery) -> BaseQuery:
+def apply_order(model, query) -> query:
     sort_keys =  request.args.get('sort')
     if sort_keys:
         for key in sort_keys.split(','):
@@ -77,7 +76,7 @@ def _get_filter_argument(column_name: InstrumentedAttribute, value: str, operato
     return operator_mapping[operator]
 
 
-def apply_filter(model: DefaultMeta, query: BaseQuery) -> BaseQuery:
+def apply_filter(model, query) -> query:
     for param, value in request.args.items():
         if param not in {'fields', 'sort', 'page', 'limit'}:
             operator = '=='
@@ -94,7 +93,7 @@ def apply_filter(model: DefaultMeta, query: BaseQuery) -> BaseQuery:
     return query
 
 
-def get_pagination(query: BaseQuery, func_name: str) -> Tuple[list, dict]:
+def get_pagination(query, func_name: str) -> Tuple[list, dict]:
     page = request.args.get('page', 1, type=int)
     limit = request.args.get('limit', current_app.config.get('PER PAGE', 5), type=int)
     params = {key: value for key, value in request.args.items() if key != 'page'}
