@@ -1,6 +1,7 @@
 from flask import Flask
 from book_library_app import db
 
+
 def test_app(app):
     assert isinstance(app, Flask)
     assert app.config['TESTING'] is True

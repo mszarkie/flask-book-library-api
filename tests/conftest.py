@@ -13,3 +13,9 @@ def app():
     yield app
 
     app.config['DB_FILE_PATH'].unlink(missing_ok=True)
+
+
+@pytest.fixture()
+def client(app):
+    with app.test_client() as client:
+        yield client
