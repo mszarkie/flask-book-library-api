@@ -27,7 +27,7 @@ def register(args: dict):
     return jsonify({
         'success': True,
         'token': token
-    })
+    }), 201
 
 
 @auth_bp.route('/login', methods=['POST'])
