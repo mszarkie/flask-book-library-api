@@ -13,8 +13,10 @@ def create_app(config_name='development'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
 
-    app_ctx = app.app_context()
-    app_ctx.push()
+# hmm tutaj wczesniej bez tego mi nie dzialala apka, a pozniej z testami musialem to wylaczyc zeby przeszly testy.
+#  lekcja 67
+    # app_ctx = app.app_context()
+    # app_ctx.push()
 
     db.init_app(app)
     migrate.init_app(app, db)
