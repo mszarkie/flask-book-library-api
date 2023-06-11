@@ -15,8 +15,8 @@ def create_app(config_name='development'):
 
 # hmm tutaj wczesniej bez tego mi nie dzialala apka, a pozniej z testami musialem to wylaczyc zeby przeszly testy.
 #  lekcja 67
-    # app_ctx = app.app_context()
-    # app_ctx.push()
+#     app_ctx = app.app_context()
+#     app_ctx.push()
 
     db.init_app(app)
     migrate.init_app(app, db)
