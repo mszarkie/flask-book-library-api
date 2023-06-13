@@ -34,12 +34,7 @@ def test_registration_invalid_data(client, data, missing_field):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
     assert 'token' not in response_data
-    print("response_data:   ", response_data)
-    print("response_data['message']:   ", response_data['message'])
-    print("missing_field:   ", missing_field)
-    print("data:   ", data)
-    #print("response_data['message'][missing_field]:   ", response_data['message'][missing_field])
-    assert missing_field in response_data['message']
-    assert 'Missing data for required field.' in response_data['message'][missing_field]
+    assert missing_field in response_data['message']['json']
+    assert 'Missing data for required field.' in response_data['message']['json'].get(missing_field)
 
     db.engine.dispose()
