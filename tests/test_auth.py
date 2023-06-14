@@ -39,7 +39,8 @@ def test_registration_invalid_data(client, data, missing_field):
 
     db.engine.dispose()
 
-#this test is not checking what description is about, so i changed it a litte bit to go further in learining
+
+# this test below is not checking what description is about, so i changed it a litte bit to go further in learining
 # AttributeError: 'BadRequest' object has no attribute 'data'
 def test_registration_invalid_content_type(client):
     response = client.post('/api/v1/auth/register',
@@ -56,6 +57,7 @@ def test_registration_invalid_content_type(client):
 
     db.engine.dispose()
 
+
 def test_registration_already_used_username(client, user):
     response = client.post('/api/v1/auth/register',
                            json={
@@ -71,6 +73,7 @@ def test_registration_already_used_username(client, user):
 
     db.engine.dispose()
 
+
 def test_registration_already_used_email(client, user):
     response = client.post('/api/v1/auth/register',
                            json={
@@ -83,5 +86,33 @@ def test_registration_already_used_email(client, user):
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
     assert 'token' not in response_data
+
+    db.engine.dispose()
+
+
+def test_get_current_user(client, user, token):
+    response = client.get('/api/v1/auth/me',
+                           headers={
+                               'Authorization': f'Bearer {token}'
+                           })
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['data']['username'] == user['username']
+    assert response_data['data']['email'] == user['email']
+    assert 'id' in response_data['data']
+    assert 'creation_date' in response_data['data']
+
+    db.engine.dispose()
+
+
+def test_get_current_user_missing_token(client):
+    response = client.get('/api/v1/auth/me')
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data'not in response_data
 
     db.engine.dispose()
