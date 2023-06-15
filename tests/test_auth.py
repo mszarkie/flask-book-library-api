@@ -113,6 +113,6 @@ def test_get_current_user_missing_token(client):
     assert response.status_code == 401
     assert response.headers['Content-Type'] == 'application/json'
     assert response_data['success'] is False
-    assert 'data'not in response_data
+    assert 'data' not in response_data
 
     db.engine.dispose()

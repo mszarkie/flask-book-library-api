@@ -1,3 +1,4 @@
+import pytest
 from book_library_app import db
 
 
@@ -60,5 +61,111 @@ def test_get_authors_with_params(client, sample_data):
             'first_name': 'Dan'
         }
     ]
+
+    db.engine.dispose()
+
+
+def test_get_single_author(client, sample_data):
+    response = client.get('/api/v1/authors/9')
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is True
+    assert response_data['data']['first_name'] == "Andrzej"
+    assert response_data['data']['last_name'] == "Sapkowski"
+    assert response_data['data']['birth_date'] == "21-06-1948"
+    assert len(response_data['data']['books']) == 1
+
+    db.engine.dispose()
+
+
+def test_get_single_author_not_found(client, sample_data):
+    response = client.get('/api/v1/authors/30')
+    response_data = response.get_json()
+    assert response.status_code == 404
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
+
+    db.engine.dispose()
+
+
+def test_create_author(client, token, author):
+    response = client.post('/api/v1/authors',
+                           json=author,
+                           headers={
+                               'Authorization': f'Bearer {token}'
+                           })
+    response_data = response.get_json()
+    expected_result = {
+        'success': True,
+        'data': {
+            **author,
+            'id': 1,
+            'books': []
+        }
+    }
+    assert response.status_code == 201
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data == expected_result
+
+    response = client.get('/api/v1/authors/1')
+    response_data = response.get_json()
+    assert response.status_code == 200
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data == expected_result
+
+    db.engine.dispose()
+
+
+@pytest.mark.parametrize(
+    'data,missing_field',
+    [
+        ({'last_name': 'Mickiewicz', 'birth_date': '21-12-1798'}, 'first_name'),
+        ({'first_name': 'Adam', 'birth_date': '21-12-1798'}, 'last_name'),
+        ({'first_name': 'Adam', 'last_name': 'Mickiewicz'}, 'birth_date')
+    ]
+)
+def test_create_author_invalid_data(client, token, data, missing_field):
+    response = client.post('/api/v1/authors',
+                           json=data,
+                           headers={
+                               'Authorization': f'Bearer {token}'
+                           })
+    response_data = response.get_json()
+    assert response.status_code == 400
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
+    assert missing_field in response_data['message']['json']
+    assert 'Missing data for required field.' in response_data['message']['json'].get(missing_field)
+
+    db.engine.dispose()
+
+
+"""def test_create_author_invalid_content_type(client, token, author):
+    response = client.post('/api/v1/authors',
+                           data=author,  <----- Bad request, no 'data' attribute
+                           headers={
+                               'Authorization': f'Bearer {token}'
+                           })
+    response_data = response.get_json()
+    assert response.status_code == 415
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
+
+    db.engine.dispose()
+"""
+
+
+def test_create_author_missing_token(client, author):
+    response = client.post('/api/v1/authors',
+                           json=author)
+    response_data = response.get_json()
+    assert response.status_code == 401
+    assert response.headers['Content-Type'] == 'application/json'
+    assert response_data['success'] is False
+    assert 'data' not in response_data
 
     db.engine.dispose()
